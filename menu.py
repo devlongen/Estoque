@@ -1,14 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox
 import os
-
-
+import mysql.connector
 
 class StockControlApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Stock Control")
-        self.root.geometry("800x500")
+        self.root.geometry("1900x900")
         self.root.configure(bg="#0F0C25")
         
         # Verificar se as imagens existem
@@ -22,7 +21,7 @@ class StockControlApp:
                 messagebox.showerror("Erro", f"Imagem {img_path} não encontrada!")
                 self.root.quit()
                 return
-        
+           
         # Carregar imagens
         self.logo_img = tk.PhotoImage(file=logo_path)
         self.cadastro_img = tk.PhotoImage(file=cadastro_img_path)
@@ -107,47 +106,54 @@ class StockControlApp:
         self.profit_count_label = tk.Label(self.buttons_frame, textvariable=self.profit_count, bg="#0F0C25", fg="white", width=10)
         self.profit_count_label.grid(row=0, column=8, padx=10, pady=10, sticky="nsew")
 
+        # Chamar a função de atualização na inicialização
+        self.update_counts()
+
+        # Atualizar automaticamente a cada 10 segundos
+        self.root.after(10000, self.update_counts_periodically)
+
     def update_counts(self):
-        # Atualizar as variáveis de contagem (Aqui você pode fazer a lógica de como os números são atualizados)
-        # Exemplo simples de incremento
-        self.prod_count.set(str(int(self.prod_count.get()) + 1))
-        self.output_count.set(str(int(self.output_count.get()) + 1))
-        self.profit_count.set(str(int(self.profit_count.get()) + 1))
+        try:
+            # Conectar ao MySQL com banco de dados específico
+            conn = mysql.connector.connect(
+                    host="localhost",
+                    user="root",      
+                    password="root",  
+                    database="estoque"  # Nome do banco de dados
+            )
+            cursor = conn.cursor()
+            print("Conectado ao banco de dados 'estoque'.")
+            cursor.execute('SELECT COUNT(*) FROM produtos')
+            qtd_estoque_var = cursor.fetchone()[0]  # Obtém o valor da contagem
+            cursor.execute('SELECT COUNT(*) as Quantidade FROM saida')
+            qtd_saida_var = cursor.fetchone()[0]  # Obtém o valor da contagem
+            conn.close()  # Fechar a conexão
+            self.prod_count.set(qtd_estoque_var)
+            self.output_count.set(qtd_saida_var)
+            self.profit_count.set(1)  # Aqui você pode calcular o lucro, se necessário
+            return qtd_saida_var, qtd_estoque_var
+        except mysql.connector.Error as e:
+            print(f"Erro ao conectar ao banco de dados: {e}")
+            return None  # Retorna None em caso de erro
+
+    def update_counts_periodically(self):
+        self.update_counts()
+        # Chama a função novamente após 10 segundos
+        self.root.after(10000, self.update_counts_periodically)
 
     def show_home(self):
         messagebox.showinfo("Tela Inicial", "Você está na Tela Inicial!")
 
     def show_output(self):
+        # Mostra a tela de Saída
         messagebox.showinfo("Saída", "Você está na Tela de Saída de Produtos!")
 
     def show_register(self):
+        # Mostra a tela de Cadastro de Produtos
         messagebox.showinfo("Cadastro", "Você está na Tela de Cadastro de Produtos!")
 
     def show_logout(self):
         messagebox.showinfo("Sair", "Você foi desconectado!")
-        
-    def show_register(self):
-        # Aqui, ao invés de mostrar o messagebox, o código irá rodar o script cadastroproduto.py
-        messagebox.showinfo("Cadastro", "Você está na Tela de Cadastro de Produtos!")
-        os.system('python cadastroproduto.py')  # Executa o script cadastroproduto.py
-        
-    def show_output(self):
-        # Aqui, ao invés de mostrar o messagebox, o código irá rodar o script saidaproduto.py
-        messagebox.showinfo("Saída", "Você está na Tela de Saída de Produtos!")
-        os.system('python saidaproduto.py')  # Executa o script saidaproduto.py
-
-        
-    def show_register_prod(self):
-        messagebox.showinfo("Cadastro de Produtos", "A tela de Cadastro de Produtos foi aberta!")
-        self.update_counts()  # Atualiza a contagem de produtos cadastrados
-
-    def show_output_prod(self):
-        messagebox.showinfo("Saída de Produtos", "A tela de Saída de Produtos foi aberta!")
-        self.update_counts()  # Atualiza a contagem de saída de produtos
-
-    def show_profit_calc(self):
-        messagebox.showinfo("Calculadora de Lucro", "A tela de Calculadora de Lucro foi aberta!")
-        self.update_counts()  # Atualiza a contagem de lucro
 
 if __name__ == "__main__":
     root = tk.Tk()

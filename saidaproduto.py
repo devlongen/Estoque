@@ -1,250 +1,313 @@
 import tkinter as tk
 from tkinter import messagebox
-from tkinter import ttk
 import mysql.connector
+from tkinter import ttk
+from tkcalendar import Calendar
 
-# Função para lançar saída de produto
+# Função para conectar ao banco de dados
 def connection_database():
     try:
-        # Conectar ao MySQL
         conn = mysql.connector.connect(
             host="localhost",
-            user="root",      
+            user="root",
             password="root",
             database="estoque"
         )
         return conn
     except mysql.connector.Error as e:
-        print(f"Erro ao conectar ao banco de dados: {e}")
+        messagebox.showerror("Erro", f"Erro ao conectar ao banco de dados: {e}")
         return None
 
+# Função para cadastrar um produto
+def cadastrar_produto():
+    nome = entry_nome.get()
+    quantidadeSaida = entry_quantidade.get()
+    valorEntrada = entry_valorEntrada.get()
+    valorSaida = entry_valorSaida.get()
+    lucro = entry_lucro.get()
+    validade = entry_validade.get()
 
-def lançar_saida():
+    if not nome or not quantidadeSaida or not valorEntrada or not valorSaida or not lucro or not validade:
+        messagebox.showwarning("Aviso", "Preencha todos os campos!")
+        return
+
+    try:
+        quantidadeSaida = int(quantidadeSaida)
+        valorEntrada = float(valorEntrada)
+        valorSaida = float(valorSaida)
+        lucro = float(lucro)
+    except ValueError:
+        messagebox.showwarning("Aviso", "Quantidade, Valor de Entrada, Valor de Saída e Lucro devem ser numéricos!")
+        return
+
     conn = connection_database()
     if not conn:
         return
 
-    cursor = conn.cursor()
-
-    id_produto = entry_id_produto.get()
-    nome = entry_nome.get()
-    quantidade_saida = entry_quantidade_saida.get()
-    valor_saida = entry_valor_saida.get()
-
-    if not id_produto or not nome or not quantidade_saida or not valor_saida:
-        messagebox.showwarning("Aviso", "Preencha todos os campos.")
-        return
-
-    valor_entrada = 10.0  # Exemplo de valor de entrada
-    lucro = float(valor_saida) - valor_entrada  # Exemplo de lucro
-    validade = "2024-12-31"
-
-    query = """
-    INSERT INTO saida (id, nome, quantidadeSaida, valorEntrada, valorSaida, lucro, validade)
-    VALUES (%s, %s, %s, %s, %s, %s, %s);
-    """
-    cursor.execute(query, (id_produto, nome, int(quantidade_saida), valor_entrada, float(valor_saida), lucro, validade))
-    conn.commit()
-    conn.close()
-
-    messagebox.showinfo("Sucesso", "Produto lançado com sucesso!")
-    atualizar_tabela()
-
-
-def editar_saida():
-    selected_item = tabela_saida.selection()
-    if not selected_item:
-        messagebox.showwarning("Aviso", "Selecione um produto para editar.")
-        return
-
-    item = tabela_saida.item(selected_item)
-    produto = item['values']
-
-    entry_id_produto.delete(0, tk.END)
-    entry_id_produto.insert(0, produto[0])
-
-    entry_nome.delete(0, tk.END)
-    entry_nome.insert(0, produto[1])
-
-    entry_quantidade_saida.delete(0, tk.END)
-    entry_quantidade_saida.insert(0, produto[2])
-
-    entry_valor_saida.delete(0, tk.END)
-    entry_valor_saida.insert(0, produto[4])
-
-    # Alterando o texto do botão para "Salvar Alterações"
-    btn_lancar_saida.config(text="Salvar Alterações", command=lambda: salvar_alteracoes(selected_item))
-
-
-def salvar_alteracoes(selected_item):
-    conn = connection_database()
-    if not conn:
-        return
-
-    cursor = conn.cursor()
-
-    id_produto = entry_id_produto.get()
-    nome = entry_nome.get()
-    quantidade_saida = entry_quantidade_saida.get()
-    valor_saida = entry_valor_saida.get()
-
-    if not id_produto or not nome or not quantidade_saida or not valor_saida:
-        messagebox.showwarning("Aviso", "Preencha todos os campos.")
-        return
-
-    valor_entrada = 10.0  # Exemplo de valor de entrada
-    lucro = float(valor_saida) - valor_entrada  # Exemplo de lucro
-    validade = "2024-12-31"
-
-    query = """
-    UPDATE saida
-    SET nome = %s, quantidadeSaida = %s, valorEntrada = %s, valorSaida = %s, lucro = %s, validade = %s
-    WHERE id = %s;
-    """
-    cursor.execute(query, (nome, int(quantidade_saida), valor_entrada, float(valor_saida), lucro, validade, id_produto))
-    conn.commit()
-    conn.close()
-
-    messagebox.showinfo("Sucesso", "Produto alterado com sucesso!")
-    atualizar_tabela()
-
-    # Resetando o botão para lançar saída novamente
-    btn_lancar_saida.config(text="Lançar Saída", command=lançar_saida)
-
-
-def excluir_saida():
-    selected_item = tabela_saida.selection()
-    if not selected_item:
-        messagebox.showwarning("Aviso", "Selecione um produto para excluir.")
-        return
-
-    confirmacao = messagebox.askyesno("Confirmação", "Você tem certeza que deseja excluir este produto?")
-    if confirmacao:
-        item = tabela_saida.item(selected_item)
-        produto = item['values']
-
-        conn = connection_database()
-        if not conn:
-            return
-
+    try:
         cursor = conn.cursor()
-
-        query = """
-        DELETE FROM saida WHERE id = %s;
-        """
-        cursor.execute(query, (produto[0],))
+        query = '''
+            INSERT INTO saida (nome, quantidadeSaida, valorEntrada, valorSaida, lucro, validade)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        '''
+        cursor.execute(query, (nome, quantidadeSaida, valorEntrada, valorSaida, lucro, validade))
         conn.commit()
+        messagebox.showinfo("Sucesso", f"Produto '{nome}' cadastrado com sucesso!")
+        limpar_campos()
+    except mysql.connector.Error as e:
+        messagebox.showerror("Erro", f"Erro ao cadastrar produto: {e}")
+    finally:
         conn.close()
 
-        messagebox.showinfo("Sucesso", "Produto excluído com sucesso!")
-        atualizar_tabela()
+# Função para editar um produto
+def editar_produto():
+    index = entry_oodigo_produto.get()
+    nome = entry_nome.get()
+    quantidadeSaida = entry_quantidade.get()
+    valorEntrada = entry_valorEntrada.get()
+    valorSaida = entry_valorSaida.get()
+    lucro = entry_lucro.get()
+    validade = entry_validade.get()
 
+    if not nome or not quantidadeSaida or not valorEntrada or not valorSaida or not lucro or not validade:
+        messagebox.showwarning("Aviso", "Preencha todos os campos!")
+        return
 
-def consultar_saida():
+    if not index:
+        messagebox.showwarning("Aviso", "Preencha o índice do produto para edição!")
+        return
+
+    try:
+        index = int(index)
+        quantidadeSaida = int(quantidadeSaida)
+        valorEntrada = float(valorEntrada)
+        valorSaida = float(valorSaida)
+        lucro = float(lucro)
+    except ValueError:
+        messagebox.showwarning("Aviso", "Índice, Quantidade, Valor de Entrada, Valor de Saída e Lucro devem ser numéricos!")
+        return
+
     conn = connection_database()
     if not conn:
         return
 
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
+        query = '''
+            UPDATE saida
+            SET 
+                nome = %s, 
+                quantidadeSaida = %s, 
+                valorEntrada = %s, 
+                valorSaida = %s, 
+                lucro = %s, 
+                validade = %s
+            WHERE id = %s
+        '''
+        cursor.execute(query, (nome, quantidadeSaida, valorEntrada, valorSaida, lucro, validade, index))
+        conn.commit()
+        if cursor.rowcount == 0:
+            messagebox.showwarning("Aviso", "Nenhum produto encontrado com este índice.")
+        else:
+            messagebox.showinfo("Sucesso", f"Produto '{nome}' editado com sucesso!")
+        limpar_campos()
+    except mysql.connector.Error as e:
+        messagebox.showerror("Erro", f"Erro ao editar produto: {e}")
+    finally:
+        conn.close()
 
-    query = "SELECT * FROM saida"
-    cursor.execute(query)
-    produtos = cursor.fetchall()
-    conn.close()
+# Função para excluir um produto
+def excluir_produto():
+    index = entry_oodigo_produto.get()
 
-    for row in tabela_saida.get_children():
-        tabela_saida.delete(row)
+    if not index:
+        messagebox.showwarning("Aviso", "Preencha o índice do produto para exclusão!")
+        return
 
-    for produto in produtos:
-        tabela_saida.insert("", "end", values=produto)
+    try:
+        index = int(index)
+    except ValueError:
+        messagebox.showwarning("Aviso", "Índice deve ser numérico!")
+        return
 
-
-def atualizar_tabela():
     conn = connection_database()
     if not conn:
         return
 
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
+        query = "DELETE FROM saida WHERE id = %s"
+        cursor.execute(query, (index,))
+        conn.commit()
+        if cursor.rowcount == 0:
+            messagebox.showwarning("Aviso", "Nenhum produto encontrado com este índice.")
+        else:
+            messagebox.showinfo("Sucesso", f"Produto com índice '{index}' excluído com sucesso!")
+        limpar_campos()
+    except mysql.connector.Error as e:
+        messagebox.showerror("Erro", f"Erro ao excluir produto: {e}")
+    finally:
+        conn.close()
 
-    query = "SELECT * FROM saida"
-    cursor.execute(query)
-    produtos = cursor.fetchall()
-    conn.close()
+# Função para listar os produtos
+def listar_saida():
+    conn = connection_database()
+    if not conn:
+        return
 
-    for row in tabela_saida.get_children():
-        tabela_saida.delete(row)
+    try:
+        cursor = conn.cursor()
+        query = "SELECT * FROM saida"
+        cursor.execute(query)
+        produtos = cursor.fetchall()
 
-    for produto in produtos:
-        tabela_saida.insert("", "end", values=produto)
+        # Limpar a tabela antes de listar os produtos
+        for row in tree.get_children():
+            tree.delete(row)
 
+        # Adicionar produtos à tabela
+        for produto in produtos:
+            tree.insert("", "end", values=produto)
 
-# Configuração da janela principal
+    except mysql.connector.Error as e:
+        messagebox.showerror("Erro", f"Erro ao listar produtos: {e}")
+    finally:
+        conn.close()
+
+def listar_estoque():
+    conn = connection_database()
+    if not conn:
+        return
+
+    try:
+        cursor = conn.cursor()
+        query = "SELECT * FROM produtos"
+        cursor.execute(query)
+        produtos = cursor.fetchall()
+
+        # Limpar a tabela antes de listar os produtos
+        for row in tree.get_children():
+            tree.delete(row)
+
+        # Adicionar produtos à tabela
+        for produto in produtos:
+            tree.insert("", "end", values=produto)
+
+    except mysql.connector.Error as e:
+        messagebox.showerror("Erro", f"Erro ao listar produtos: {e}")
+    finally:
+        conn.close()
+
+# Função para limpar os campos de entrada
+def limpar_campos():
+    entry_nome.delete(0, tk.END)
+    entry_quantidade.delete(0, tk.END)
+    entry_valorEntrada.delete(0, tk.END)
+    entry_valorSaida.delete(0, tk.END)
+    entry_lucro.delete(0, tk.END)
+    entry_validade.delete(0, tk.END)
+    entry_oodigo_produto.delete(0, tk.END)
+
+# Função para formatar a validade
+def formatar_validade(event):
+    validade = entry_validade.get()
+    validade = "".join(c for c in validade if c.isdigit())  # Remove tudo que não é número
+    if len(validade) > 4:
+        validade = validade[:4] + "-" + validade[4:]
+    if len(validade) > 7:
+        validade = validade[:7] + "-" + validade[7:]
+    entry_validade.delete(0, tk.END)
+    entry_validade.insert(0, validade)
+
+# Função para exibir e inserir a data selecionada do calendário
+def escolher_data():
+    data = cal.selection_get()
+    entry_validade.delete(0, tk.END)
+    entry_validade.insert(0, data.strftime("%Y-%m-%d"))
+    cal.place_forget()  # Esconde o calendário após escolher a data
+
+# Função para exibir o calendário
+def exibir_calendario(event):
+    cal.place(x=entry_validade.winfo_x(), y=entry_validade.winfo_y() + 30)  # Exibe o calendário abaixo do campo de validade
+    cal.lift()  # Garante que o calendário fique acima dos outros elementos da interface
+
+# Configuração da interface gráfica
 root = tk.Tk()
 root.title("Sistema de Controle de Estoque")
+root.geometry("1900x900")
+root.configure(bg="#0f0d25")  # Cor de fundo do root
 
-# Configuração do estilo visual
-root.configure(bg="#0f0d25")
-root.geometry("700x600")
-
-# Container principal
-container = tk.Frame(root, bg="#0f0d25", padx=20, pady=20)
+# Layout
+container = tk.Frame(root, bg="#0f0d25", padx=20, pady=20)  # Cor de fundo do container
 container.pack(expand=True, fill="both", padx=20, pady=20)
 
-# Título
-titulo = tk.Label(container, text="Sistema de Controle de Estoque", font=("Arial", 16), bg="#0f0d25", fg="white")
+titulo = tk.Label(container, text="Saída de estoque", font=("Arial", 16), bg="#0f0d25", fg="white")
 titulo.grid(row=0, column=0, columnspan=2, pady=20)
 
 # Entradas de dados
 tk.Label(container, text="Código do produto:", bg="#0f0d25", fg="white").grid(row=1, column=0, pady=5, sticky="w")
-entry_id_produto = tk.Entry(container)
-entry_id_produto.grid(row=1, column=1, pady=5)
+entry_oodigo_produto = tk.Entry(container)
+entry_oodigo_produto.grid(row=1, column=1, pady=5)
 
-tk.Label(container, text="Nome:", bg="#0f0d25", fg="white").grid(row=2, column=0, pady=5, sticky="w")
+tk.Label(container, text="Nome do Produto:", bg="#0f0d25", fg="white").grid(row=2, column=0, pady=5, sticky="w")
 entry_nome = tk.Entry(container)
 entry_nome.grid(row=2, column=1, pady=5)
 
-tk.Label(container, text="Quantidade Saída:", bg="#0f0d25", fg="white").grid(row=3, column=0, pady=5, sticky="w")
-entry_quantidade_saida = tk.Entry(container)
-entry_quantidade_saida.grid(row=3, column=1, pady=5)
+tk.Label(container, text="Quantidade:", bg="#0f0d25", fg="white").grid(row=3, column=0, pady=5, sticky="w")
+entry_quantidade = tk.Entry(container)
+entry_quantidade.grid(row=3, column=1, pady=5)
 
-tk.Label(container, text="Valor Saída:", bg="#0f0d25", fg="white").grid(row=4, column=0, pady=5, sticky="w")
-entry_valor_saida = tk.Entry(container)
-entry_valor_saida.grid(row=4, column=1, pady=5)
+tk.Label(container, text="Valor de Entrada:", bg="#0f0d25", fg="white").grid(row=4, column=0, pady=5, sticky="w")
+entry_valorEntrada = tk.Entry(container)
+entry_valorEntrada.grid(row=4, column=1, pady=5)
 
-# Botões de ação (ajustando a posição na parte inferior e lado a lado)
+tk.Label(container, text="Valor de Saída:", bg="#0f0d25", fg="white").grid(row=5, column=0, pady=5, sticky="w")
+entry_valorSaida = tk.Entry(container)
+entry_valorSaida.grid(row=5, column=1, pady=5)
 
-btn_lancar_saida = tk.Button(container, text="Criar Saída", bg="#f0ad4e", fg="white", command=lançar_saida, width=15)
-btn_lancar_saida.grid(row=5, column=1, pady=10, padx=5, sticky="ew")
+tk.Label(container, text="Lucro:", bg="#0f0d25", fg="white").grid(row=6, column=0, pady=5, sticky="w")
+entry_lucro = tk.Entry(container)
+entry_lucro.grid(row=6, column=1, pady=5)
 
-btn_consultar_saida = tk.Button(container, text="Consultar Saída", bg="#5cb85c", fg="white", command=consultar_saida, width=15)
-btn_consultar_saida.grid(row=5, column=0, pady=10, padx=5, sticky="ew")
+tk.Label(container, text="Validade (AAAA-MM-DD):", bg="#0f0d25", fg="white").grid(row=7, column=0, pady=5, sticky="w")
+entry_validade = tk.Entry(container)
+entry_validade.grid(row=7, column=1, pady=5)
+entry_validade.bind("<FocusIn>", exibir_calendario)
+entry_validade.bind("<KeyRelease>", formatar_validade)
 
-btn_editar_saida = tk.Button(container, text="Editar Saída", bg="#f0ad4e", fg="white", command=editar_saida, width=15)
-btn_editar_saida.grid(row=5, column=1, pady=10, padx=5, sticky="ew")
+# Botões
+button_frame = tk.Frame(container, bg="#0f0d25")
+button_frame.grid(row=8, column=0, columnspan=2, pady=20)
 
-btn_excluir_saida = tk.Button(container, text="Excluir Saída", bg="#d9534f", fg="white", command=excluir_saida, width=15)
-btn_excluir_saida.grid(row=5, column=2, pady=10, padx=5, sticky="ew")
+botao_cadastrar = tk.Button(button_frame, text="Cadastrar", bg="#4CAF50", fg="white", command=cadastrar_produto)
+botao_cadastrar.grid(row=0, column=0, padx=10)
 
-# Tabela (Treeview) para mostrar a saída de produtos
-columns = ("ID", "Nome", "Quantidade Saída", "Valor Entrada", "Valor Saída", "Lucro", "Validade")
-tabela_saida = ttk.Treeview(container, columns=columns, show="headings")
+botao_editar = tk.Button(button_frame, text="Editar", bg="#008CBA", fg="white", command=editar_produto)
+botao_editar.grid(row=0, column=1, padx=10)
 
-# Configuração das colunas
-for col in columns:
-    tabela_saida.heading(col, text=col)
-    tabela_saida.column(col, minwidth=0, width=100)
+botao_excluir = tk.Button(button_frame, text="Excluir", bg="#f44336", fg="white", command=excluir_produto)
+botao_excluir.grid(row=0, column=2, padx=10)
 
-# Inserção da tabela no layout
-tabela_saida.grid(row=6, column=0, columnspan=2, pady=10, sticky="nsew")
+botao_listar = tk.Button(button_frame, text="Listar Saida de estoque", bg="#9C27B0", fg="white", command=listar_saida)
+botao_listar.grid(row=0, column=3, padx=10)
 
-# Barra de rolagem para a tabela
-scrollbar = ttk.Scrollbar(container, orient="vertical", command=tabela_saida.yview)
-tabela_saida.configure(yscrollcommand=scrollbar.set)
-scrollbar.grid(row=6, column=2, sticky="ns")
+botao_listar_estoque = tk.Button(button_frame, text="Listar Estoque", bg="#FF5722", fg="white", command=listar_estoque)
+botao_listar_estoque.grid(row=0, column=4, padx=10)
 
-# Configuração da expansão no layout
-container.grid_rowconfigure(6, weight=1)
-container.grid_columnconfigure(1, weight=1)
+# Tabela de produtos
+tree = ttk.Treeview(container, columns=("id", "nome", "quantidadeSaida", "valorEntrada", "valorSaida", "lucro", "validade"), show="headings")
+tree.grid(row=9, column=0, columnspan=2, pady=10, sticky="nsew")
 
-# Iniciar a interface
+tree.heading("id", text="ID")
+tree.heading("nome", text="Nome")
+tree.heading("quantidadeSaida", text="Quantidade")
+tree.heading("valorEntrada", text="Valor Entrada")
+tree.heading("valorSaida", text="Valor Saída")
+tree.heading("lucro", text="Lucro")
+tree.heading("validade", text="Validade")
+
+# Calendário
+cal = Calendar(root, selectmode='day', date_pattern='y-mm-dd')
+cal.bind("<<CalendarSelected>>", lambda e: escolher_data())
+
 root.mainloop()

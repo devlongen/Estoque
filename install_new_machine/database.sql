@@ -4,13 +4,14 @@ CREATE DATABASE IF NOT EXISTS estoque;
 CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     nome VARCHAR(255) NOT NULL,
+                    email varchar(255) NOT NULL,
                     username VARCHAR(255) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL
                 );
 
 
 CREATE TABLE IF NOT EXISTS produto (
-    id int NOT NULL,
+    id int AUTO_INCREMENT NOT NULL,
     nome VARCHAR(255) NOT NULL,        -- Nome do produto
     quantidade INT NOT NULL,           -- Quantidade disponível no estoque
     quant_minima INT NOT NULL,         -- Quantidade mínima para reabastecimento
@@ -18,4 +19,15 @@ CREATE TABLE IF NOT EXISTS produto (
     validade DATETIME NOT NULL,        -- Data e hora de validade do produto
     PRIMARY KEY (id)                 -- Define a coluna `nome` como chave primária
 );
+
+CREATE TABLE IF NOT EXISTS saida (
+    id INT AUTO_INCREMENT PRIMARY KEY,     -- id será auto incremento
+    nome VARCHAR(255) NOT NULL,            -- Nome do produto ou item
+    quantidadeSaida INT NOT NULL,          -- Quantidade de saída do produto
+    valorEntrada DECIMAL(10, 2) NOT NULL,  -- Valor de entrada (custo de aquisição)
+    valorSaida DECIMAL(10, 2) NOT NULL,    -- Valor de saída (preço de venda)
+    lucro DECIMAL(10, 2) NOT NULL,         -- Lucro calculado (valorSaida - valorEntrada)
+    validade DATETIME NOT NULL             -- Data e hora de validade
+);
+
 

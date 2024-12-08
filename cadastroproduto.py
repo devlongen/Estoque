@@ -45,7 +45,7 @@ def cadastrar_produto():
     try:
         cursor = conn.cursor()
         query = """
-        INSERT INTO produtos (nome, quantidade, quantidade_minima, preco, validade)
+        INSERT INTO produtos (nome, quantidade, quant_minima, preco, validade)
         VALUES (%s, %s, %s, %s, %s)
         """
         cursor.execute(query, (nome, quantidade, quant_minima, preco, validade))
@@ -87,7 +87,7 @@ def editar_produto():
         cursor = conn.cursor()
         query = """
         UPDATE produtos
-        SET nome = %s, quantidade = %s, quantidade_minima = %s, preco = %s, validade = %s
+        SET nome = %s, quantidade = %s, quant_minima = %s, preco = %s, validade = %s
         WHERE id = %s
         """
         cursor.execute(query, (nome, quantidade, quant_minima, preco, validade, index))
@@ -195,43 +195,42 @@ def exibir_calendario(event):
 # Configuração da interface gráfica
 root = tk.Tk()
 root.title("Sistema de Controle de Estoque")
-root.geometry("800x600")
-root.configure(bg="#0f0d25")
+root.geometry("1900x900")
+root.configure(bg="#0f0d25")  # Cor de fundo do root
 
 # Layout
-container = tk.Frame(root, bg="#fff", padx=20, pady=20)
+container = tk.Frame(root, bg="#0f0d25", padx=20, pady=20)  # Cor de fundo do container
 container.pack(expand=True, fill="both", padx=20, pady=20)
 
-titulo = tk.Label(container, text="Sistema de Controle de Estoque", font=("Arial", 16), bg="#fff", fg="#0f0d25")
+titulo = tk.Label(container, text="Edite o seu produto com nossas funcionalidades!", font=("Arial", 16), bg="#0f0d25", fg="white")
 titulo.grid(row=0, column=0, columnspan=2, pady=20)
 
 # Entradas de dados
-tk.Label(container, text="Nome do Produto:", bg="#fff", fg="#0f0d25").grid(row=1, column=0, pady=5, sticky="w")
+tk.Label(container, text="Nome do Produto:", bg="#0f0d25", fg="white").grid(row=1, column=0, pady=5, sticky="w")
 entry_nome = tk.Entry(container)
 entry_nome.grid(row=1, column=1, pady=5)
 
-tk.Label(container, text="Quantidade:", bg="#fff", fg="#0f0d25").grid(row=2, column=0, pady=5, sticky="w")
+tk.Label(container, text="Quantidade:", bg="#0f0d25", fg="white").grid(row=2, column=0, pady=5, sticky="w")
 entry_quantidade = tk.Entry(container)
 entry_quantidade.grid(row=2, column=1, pady=5)
 
-tk.Label(container, text="Quantidade Mínima:", bg="#fff", fg="#0f0d25").grid(row=3, column=0, pady=5, sticky="w")
+tk.Label(container, text="Quantidade Mínima:", bg="#0f0d25", fg="white").grid(row=3, column=0, pady=5, sticky="w")
 entry_quant_minima = tk.Entry(container)
 entry_quant_minima.grid(row=3, column=1, pady=5)
 
-tk.Label(container, text="Preço:", bg="#fff", fg="#0f0d25").grid(row=4, column=0, pady=5, sticky="w")
+tk.Label(container, text="Preço:", bg="#0f0d25", fg="white").grid(row=4, column=0, pady=5, sticky="w")
 entry_preco = tk.Entry(container)
 entry_preco.grid(row=4, column=1, pady=5)
 
-tk.Label(container, text="Validade (AAAA-MM-DD):", bg="#fff", fg="#0f0d25").grid(row=5, column=0, pady=5, sticky="w")
+tk.Label(container, text="Validade (AAAA-MM-DD):", bg="#0f0d25", fg="white").grid(row=5, column=0, pady=5, sticky="w")
 entry_validade = tk.Entry(container)
 entry_validade.grid(row=5, column=1, pady=5)
 entry_validade.bind("<KeyRelease>", formatar_validade)
 entry_validade.bind("<FocusIn>", exibir_calendario)
 
-tk.Label(container, text="Índice do Produto (para editar/excluir):", bg="#fff", fg="#0f0d25").grid(row=6, column=0, pady=5, sticky="w")
+tk.Label(container, text="Código do produto (Alterar/Excluir).", bg="#0f0d25", fg="white").grid(row=6, column=0, pady=5, sticky="w")
 entry_index = tk.Entry(container)
 entry_index.grid(row=6, column=1, pady=5)
-
 
 # Botões
 botao_cadastrar = tk.Button(container, text="Cadastrar Produto", command=cadastrar_produto, bg="#4CAF50", fg="white")
@@ -245,7 +244,6 @@ botao_excluir.grid(row=8, column=0, pady=20)
 
 botao_listar = tk.Button(container, text="Listar Produtos", command=listar_produtos, bg="#2196F3", fg="white")
 botao_listar.grid(row=8, column=1, pady=20)
-
 
 # Tabela de produtos
 tree = ttk.Treeview(container, columns=("ID", "Nome", "Quantidade", "Quantidade Mínima", "Preço", "Validade"), show="headings")
