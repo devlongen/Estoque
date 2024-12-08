@@ -5,6 +5,12 @@ import sys
 packages = [
     'mysql-connector-python',
     'tk',
+    'pillow',
+    'tkcalendar',
+    'customtkinter',
+    'babel',
+    'packaging',
+    'darkdetect'
 ]
 
 # Função para instalar pacotes

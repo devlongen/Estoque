@@ -9,7 +9,7 @@ class Database:
             self.conn = mysql.connector.connect(
                 host="localhost",
                 user="root",      
-                password="root",  
+                password="",  
                 database="estoque"  # Nome do banco de dados
             )
             self.cursor = self.conn.cursor()

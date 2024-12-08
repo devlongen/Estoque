@@ -1,17 +1,16 @@
-"""BANCO DE DADOS"""
 
 CREATE DATABASE IF NOT EXISTS estoque;
-
+USE estoque;
 CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     nome VARCHAR(255) NOT NULL,
                     email varchar(255) NOT NULL,
                     username VARCHAR(255) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL
-                );
+);
 
 
-CREATE TABLE IF NOT EXISTS produto (
+CREATE TABLE IF NOT EXISTS produtos (
     id int AUTO_INCREMENT NOT NULL,
     nome VARCHAR(255) NOT NULL,        -- Nome do produto
     quantidade INT NOT NULL,           -- Quantidade disponível no estoque

@@ -10,7 +10,7 @@ def connection_database():
         conn = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="root",
+            password="",
             database="estoque"
         )
         return conn
