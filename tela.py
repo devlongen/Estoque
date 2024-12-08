@@ -169,7 +169,7 @@ class LoginCadastro:
             return
 
         try:
-            conn = mysql.connector.connect(host="localhost", user="root", password="root", database="estoque")
+            conn = mysql.connector.connect(host="localhost", user="root", password="", database="estoque")
             cursor = conn.cursor()
             cursor.execute("INSERT INTO users (nome, username, password, email) VALUES (%s, %s, %s, %s)", (nome, usuario, senha, email))
             conn.commit()
