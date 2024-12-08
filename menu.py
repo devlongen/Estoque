@@ -124,7 +124,7 @@ class StockControlApp:
             cursor = conn.cursor()
             cursor.execute('SELECT COUNT(*) FROM produtos')
             qtd_estoque_var = cursor.fetchone()[0]  # Obtém o valor da contagem
-            cursor.execute('SELECT COUNT(*) as Quantidade FROM saida')
+            cursor.execute('SELECT COUNT(*) FROM saida')
             qtd_saida_var = cursor.fetchone()[0]  # Obtém o valor da contagem
             conn.close()  # Fechar a conexão
             self.prod_count.set(qtd_estoque_var)
