@@ -122,7 +122,6 @@ class StockControlApp:
                     database="estoque"  # Nome do banco de dados
             )
             cursor = conn.cursor()
-            print("Conectado ao banco de dados 'estoque'.")
             cursor.execute('SELECT COUNT(*) FROM produtos')
             qtd_estoque_var = cursor.fetchone()[0]  # Obtém o valor da contagem
             cursor.execute('SELECT COUNT(*) as Quantidade FROM saida')
