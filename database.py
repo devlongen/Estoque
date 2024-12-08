@@ -5,11 +5,12 @@ class Database:
 
     def __init__(self):
         try:
-            # Conectar ao MySQL sem selecionar um banco de dados
+            # Conectar ao MySQL com banco de dados específico
             self.conn = mysql.connector.connect(
                 host="localhost",
                 user="root",      
-                password="root"  
+                password="root",  
+                database="estoque"  # Nome do banco de dados
             )
             self.cursor = self.conn.cursor()
             print("Conectado ao banco de dados 'estoque'.")
@@ -19,7 +20,7 @@ class Database:
             self.conn = None
             self.cursor = None
 
-    def create_table(self):
+    def create_table_users(self):
         """Cria a tabela 'users' no banco de dados."""
         try:
             self.cursor.execute("""
@@ -35,10 +36,28 @@ class Database:
         except mysql.connector.Error as e:
             print(f"Erro ao criar a tabela 'users': {e}")
 
+    def create_table_saida(self):
+        """Cria a tabela 'saida' no banco de dados."""
+        try:
+            self.cursor.execute("""
+                CREATE TABLE IF NOT EXISTS saida (
+                    id VARCHAR(50) PRIMARY KEY,
+                    nome VARCHAR(255) NOT NULL,
+                    quantidadeSaida INT NOT NULL,
+                    valorEntrada FLOAT NOT NULL,
+                    valorSaida FLOAT NOT NULL,
+                    lucro FLOAT NOT NULL,
+                    validade DATE NOT NULL
+                )
+            """)
+            self.conn.commit()
+            print("Tabela 'saida' criada ou já existente.")
+        except mysql.connector.Error as e:
+            print(f"Erro ao criar a tabela 'saida': {e}")
+
     def add_user(self, nome, username, password):
         """Adiciona um novo usuário à tabela 'users'."""
         try:
-            # Inserir um novo usuário na tabela
             query = "INSERT INTO users (nome, username, password) VALUES (%s, %s, %s)"
             self.cursor.execute(query, (nome, username, password))
             self.conn.commit()
@@ -49,7 +68,6 @@ class Database:
     def validate_user(self, username, password):
         """Valida se o usuário e a senha correspondem aos dados no banco de dados."""
         try:
-            # Verificar se o usuário existe e a senha é correta
             query = "SELECT * FROM users WHERE username = %s AND password = %s"
             self.cursor.execute(query, (username, password))
             result = self.cursor.fetchone()
@@ -63,17 +81,28 @@ class Database:
             print(f"Erro ao validar o usuário: {e}")
             return False
 
+    def add_saida(self, id_produto, nome, quantidade_saida, valor_entrada, valor_saida, lucro, validade):
+        """Adiciona um novo registro na tabela 'saida'."""
+        try:
+            query = """
+                INSERT INTO saida (id, nome, quantidadeSaida, valorEntrada, valorSaida, lucro, validade)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            self.cursor.execute(query, (id_produto, nome, quantidade_saida, valor_entrada, valor_saida, lucro, validade))
+            self.conn.commit()
+            print(f"Registro do produto '{id_produto}' adicionado com sucesso na tabela 'saida'.")
+        except mysql.connector.Error as e:
+            print(f"Erro ao adicionar o registro na tabela 'saida': {e}")
+
     def close(self):
         """Fecha a conexão com o banco de dados de forma segura."""
         try:
-            # Verifica se a conexão ainda está aberta
             if self.conn and self.conn.is_connected():
-                self.cursor.close()  # Fecha o cursor
-                self.conn.close()    # Fecha a conexão com o banco de dados
+                self.cursor.close()  # Fechando o cursor
+                self.conn.close()    # Fechando a conexão
                 print("Conexão fechada com sucesso.")
         except mysql.connector.Error as e:
             print(f"Erro ao fechar a conexão com o banco de dados: {e}")
         finally:
-            # Garantir que as variáveis de conexão sejam limpas
-            self.cursor = None
-            self.conn = None
+            self.cursor = None  # Garantindo que o cursor seja definido como None
+            self.conn = None    # Garantindo que a conexão seja definida como None

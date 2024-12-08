@@ -130,9 +130,13 @@ class StockControlApp:
         # Aqui, ao invés de mostrar o messagebox, o código irá rodar o script cadastroproduto.py
         messagebox.showinfo("Cadastro", "Você está na Tela de Cadastro de Produtos!")
         os.system('python cadastroproduto.py')  # Executa o script cadastroproduto.py
-    
-    
+        
+    def show_output(self):
+        # Aqui, ao invés de mostrar o messagebox, o código irá rodar o script saidaproduto.py
+        messagebox.showinfo("Saída", "Você está na Tela de Saída de Produtos!")
+        os.system('python saidaproduto.py')  # Executa o script saidaproduto.py
 
+        
     def show_register_prod(self):
         messagebox.showinfo("Cadastro de Produtos", "A tela de Cadastro de Produtos foi aberta!")
         self.update_counts()  # Atualiza a contagem de produtos cadastrados

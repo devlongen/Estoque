@@ -4,24 +4,28 @@ from tkinter import ttk
 import mysql.connector
 
 # Função para lançar saída de produto
-
 def connection_database():
     try:
-            # Conectar ao MySQL sem selecionar um banco de dados
-            conn = mysql.connector.connect(
-                host="localhost",
-                user="root",      
-                password="root",
-                database="estoque"
-            )
-            cursor = conn.cursor()
-            print("Conectado ao banco de dados 'estoque'.")
-        
+        # Conectar ao MySQL
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",      
+            password="root",
+            database="estoque"
+        )
+        return conn
     except mysql.connector.Error as e:
         print(f"Erro ao conectar ao banco de dados: {e}")
+        return None
 
 
 def lançar_saida():
+    conn = connection_database()
+    if not conn:
+        return
+
+    cursor = conn.cursor()
+
     id_produto = entry_id_produto.get()
     nome = entry_nome.get()
     quantidade_saida = entry_quantidade_saida.get()
@@ -31,26 +35,22 @@ def lançar_saida():
         messagebox.showwarning("Aviso", "Preencha todos os campos.")
         return
 
-    produto = {
-        "id": id_produto,
-        "nome": nome,
-        "quantidadeSaida": int(quantidade_saida),
-        "valorEntrada": 10.0,  # Exemplo de valor de entrada
-        "valorSaida": float(valor_saida),
-        "lucro": float(valor_saida) - 10.0,  # Exemplo de lucro
-        "validade": "2024-12-31"
-    }
+    valor_entrada = 10.0  # Exemplo de valor de entrada
+    lucro = float(valor_saida) - valor_entrada  # Exemplo de lucro
+    validade = "2024-12-31"
 
-    produtos = get_data_localstorage('saida')
-    produtos.append(produto)
-    save_data_localstorage('saida', produtos)
-
-    # Atualizando a tabela
-    atualizar_tabela()
+    query = """
+    INSERT INTO saida (id, nome, quantidadeSaida, valorEntrada, valorSaida, lucro, validade)
+    VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """
+    cursor.execute(query, (id_produto, nome, int(quantidade_saida), valor_entrada, float(valor_saida), lucro, validade))
+    conn.commit()
+    conn.close()
 
     messagebox.showinfo("Sucesso", "Produto lançado com sucesso!")
+    atualizar_tabela()
 
-# Função para editar a saída de produto
+
 def editar_saida():
     selected_item = tabela_saida.selection()
     if not selected_item:
@@ -75,8 +75,14 @@ def editar_saida():
     # Alterando o texto do botão para "Salvar Alterações"
     btn_lancar_saida.config(text="Salvar Alterações", command=lambda: salvar_alteracoes(selected_item))
 
-# Função para salvar as alterações após editar
+
 def salvar_alteracoes(selected_item):
+    conn = connection_database()
+    if not conn:
+        return
+
+    cursor = conn.cursor()
+
     id_produto = entry_id_produto.get()
     nome = entry_nome.get()
     quantidade_saida = entry_quantidade_saida.get()
@@ -86,44 +92,26 @@ def salvar_alteracoes(selected_item):
         messagebox.showwarning("Aviso", "Preencha todos os campos.")
         return
 
-    produtos = get_data_localstorage('saida')
-    item = tabela_saida.item(selected_item)
-    produto = item['values']
+    valor_entrada = 10.0  # Exemplo de valor de entrada
+    lucro = float(valor_saida) - valor_entrada  # Exemplo de lucro
+    validade = "2024-12-31"
 
-    # Atualizando os dados do produto
-    produto_editado = {
-        "id": id_produto,
-        "nome": nome,
-        "quantidadeSaida": int(quantidade_saida),
-        "valorEntrada": 10.0,  # Exemplo de valor de entrada
-        "valorSaida": float(valor_saida),
-        "lucro": float(valor_saida) - 10.0,  # Exemplo de lucro
-        "validade": "2024-12-31"
-    }
+    query = """
+    UPDATE saida
+    SET nome = %s, quantidadeSaida = %s, valorEntrada = %s, valorSaida = %s, lucro = %s, validade = %s
+    WHERE id = %s;
+    """
+    cursor.execute(query, (nome, int(quantidade_saida), valor_entrada, float(valor_saida), lucro, validade, id_produto))
+    conn.commit()
+    conn.close()
 
-    # Substituindo o produto na lista
-    index = produtos.index({
-        "id": produto[0],
-        "nome": produto[1],
-        "quantidadeSaida": produto[2],
-        "valorEntrada": produto[3],
-        "valorSaida": produto[4],
-        "lucro": produto[5],
-        "validade": produto[6]
-    })
-
-    produtos[index] = produto_editado
-    save_data_localstorage('saida', produtos)
-
-    # Atualizando a tabela
+    messagebox.showinfo("Sucesso", "Produto alterado com sucesso!")
     atualizar_tabela()
 
     # Resetando o botão para lançar saída novamente
-    btn_criar_saida.config(text="Lançar Saída", command=lançar_saida)
+    btn_lancar_saida.config(text="Lançar Saída", command=lançar_saida)
 
-    messagebox.showinfo("Sucesso", "Produto alterado com sucesso!")
 
-# Função para excluir a saída de produto
 def excluir_saida():
     selected_item = tabela_saida.selection()
     if not selected_item:
@@ -135,39 +123,60 @@ def excluir_saida():
         item = tabela_saida.item(selected_item)
         produto = item['values']
 
-        produtos = get_data_localstorage('saida')
-
-        # Encontrando o produto na lista e removendo
-        produtos = [p for p in produtos if p["id"] != produto[0]]
-
-        save_data_localstorage('saida', produtos)
-
-        # Atualizando a tabela
-        atualizar_tabela()
-
-        messagebox.showinfo("Sucesso", "Produto excluído com sucesso!")
-    def consultar_saida():
-        selected_item = tabela_saida.selection()
-        if not selected_item:
-            messagebox.showwarning("Aviso", "Selecione um produto para excluir.")
+        conn = connection_database()
+        if not conn:
             return
 
-# Função para atualizar a tabela
-def atualizar_tabela():
+        cursor = conn.cursor()
+
+        query = """
+        DELETE FROM saida WHERE id = %s;
+        """
+        cursor.execute(query, (produto[0],))
+        conn.commit()
+        conn.close()
+
+        messagebox.showinfo("Sucesso", "Produto excluído com sucesso!")
+        atualizar_tabela()
+
+
+def consultar_saida():
+    conn = connection_database()
+    if not conn:
+        return
+
+    cursor = conn.cursor()
+
+    query = "SELECT * FROM saida"
+    cursor.execute(query)
+    produtos = cursor.fetchall()
+    conn.close()
+
     for row in tabela_saida.get_children():
         tabela_saida.delete(row)
 
-    produtos = get_data_localstorage('saida')
     for produto in produtos:
-        tabela_saida.insert("", "end", values=(
-            produto["id"],
-            produto["nome"],
-            produto["quantidadeSaida"],
-            produto["valorEntrada"],
-            produto["valorSaida"],
-            produto["lucro"],
-            produto["validade"]
-        ))
+        tabela_saida.insert("", "end", values=produto)
+
+
+def atualizar_tabela():
+    conn = connection_database()
+    if not conn:
+        return
+
+    cursor = conn.cursor()
+
+    query = "SELECT * FROM saida"
+    cursor.execute(query)
+    produtos = cursor.fetchall()
+    conn.close()
+
+    for row in tabela_saida.get_children():
+        tabela_saida.delete(row)
+
+    for produto in produtos:
+        tabela_saida.insert("", "end", values=produto)
+
 
 # Configuração da janela principal
 root = tk.Tk()
@@ -202,15 +211,13 @@ tk.Label(container, text="Valor Saída:", bg="#0f0d25", fg="white").grid(row=4, 
 entry_valor_saida = tk.Entry(container)
 entry_valor_saida.grid(row=4, column=1, pady=5)
 
-
 # Botões de ação (ajustando a posição na parte inferior e lado a lado)
 
-btn_criar_saida = tk.Button(container, text="Criar Saída", bg="#f0ad4e", fg="white", command=lançar_saida, width=15)
-btn_criar_saida.grid(row=5, column=1, pady=10, padx=5, sticky="ew")
+btn_lancar_saida = tk.Button(container, text="Criar Saída", bg="#f0ad4e", fg="white", command=lançar_saida, width=15)
+btn_lancar_saida.grid(row=5, column=1, pady=10, padx=5, sticky="ew")
 
 btn_consultar_saida = tk.Button(container, text="Consultar Saída", bg="#5cb85c", fg="white", command=consultar_saida, width=15)
 btn_consultar_saida.grid(row=5, column=0, pady=10, padx=5, sticky="ew")
-
 
 btn_editar_saida = tk.Button(container, text="Editar Saída", bg="#f0ad4e", fg="white", command=editar_saida, width=15)
 btn_editar_saida.grid(row=5, column=1, pady=10, padx=5, sticky="ew")
@@ -218,20 +225,26 @@ btn_editar_saida.grid(row=5, column=1, pady=10, padx=5, sticky="ew")
 btn_excluir_saida = tk.Button(container, text="Excluir Saída", bg="#d9534f", fg="white", command=excluir_saida, width=15)
 btn_excluir_saida.grid(row=5, column=2, pady=10, padx=5, sticky="ew")
 
-
-
 # Tabela (Treeview) para mostrar a saída de produtos
 columns = ("ID", "Nome", "Quantidade Saída", "Valor Entrada", "Valor Saída", "Lucro", "Validade")
-tabela_saida = ttk.Treeview(container, columns=columns, show='headings', height=10)
+tabela_saida = ttk.Treeview(container, columns=columns, show="headings")
 
-# Definindo as colunas da tabela
+# Configuração das colunas
 for col in columns:
     tabela_saida.heading(col, text=col)
-    tabela_saida.column(col, width=100)
+    tabela_saida.column(col, minwidth=0, width=100)
 
-tabela_saida.grid(row=6, column=0, columnspan=3, pady=10, padx=5)
+# Inserção da tabela no layout
+tabela_saida.grid(row=6, column=0, columnspan=2, pady=10, sticky="nsew")
 
-# Iniciar a interface e atualizar a tabela
-atualizar_tabela()
+# Barra de rolagem para a tabela
+scrollbar = ttk.Scrollbar(container, orient="vertical", command=tabela_saida.yview)
+tabela_saida.configure(yscrollcommand=scrollbar.set)
+scrollbar.grid(row=6, column=2, sticky="ns")
 
+# Configuração da expansão no layout
+container.grid_rowconfigure(6, weight=1)
+container.grid_columnconfigure(1, weight=1)
+
+# Iniciar a interface
 root.mainloop()
