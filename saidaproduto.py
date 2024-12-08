@@ -1,21 +1,26 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-import json
-
-# Função para simular o armazenamento local
-def get_data_localstorage(key):
-    try:
-        with open(f"{key}.json", "r") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
-
-def save_data_localstorage(key, data):
-    with open(f"{key}.json", "w") as f:
-        json.dump(data, f, indent=4)
+import mysql.connector
 
 # Função para lançar saída de produto
+
+def connection_database():
+    try:
+            # Conectar ao MySQL sem selecionar um banco de dados
+            conn = mysql.connector.connect(
+                host="localhost",
+                user="root",      
+                password="root",
+                database="estoque"
+            )
+            cursor = conn.cursor()
+            print("Conectado ao banco de dados 'estoque'.")
+        
+    except mysql.connector.Error as e:
+        print(f"Erro ao conectar ao banco de dados: {e}")
+
+
 def lançar_saida():
     id_produto = entry_id_produto.get()
     nome = entry_nome.get()
@@ -114,7 +119,7 @@ def salvar_alteracoes(selected_item):
     atualizar_tabela()
 
     # Resetando o botão para lançar saída novamente
-    btn_lancar_saida.config(text="Lançar Saída", command=lançar_saida)
+    btn_criar_saida.config(text="Lançar Saída", command=lançar_saida)
 
     messagebox.showinfo("Sucesso", "Produto alterado com sucesso!")
 
@@ -141,6 +146,11 @@ def excluir_saida():
         atualizar_tabela()
 
         messagebox.showinfo("Sucesso", "Produto excluído com sucesso!")
+    def consultar_saida():
+        selected_item = tabela_saida.selection()
+        if not selected_item:
+            messagebox.showwarning("Aviso", "Selecione um produto para excluir.")
+            return
 
 # Função para atualizar a tabela
 def atualizar_tabela():
@@ -176,7 +186,7 @@ titulo = tk.Label(container, text="Sistema de Controle de Estoque", font=("Arial
 titulo.grid(row=0, column=0, columnspan=2, pady=20)
 
 # Entradas de dados
-tk.Label(container, text="ID Produto:", bg="#0f0d25", fg="white").grid(row=1, column=0, pady=5, sticky="w")
+tk.Label(container, text="Código do produto:", bg="#0f0d25", fg="white").grid(row=1, column=0, pady=5, sticky="w")
 entry_id_produto = tk.Entry(container)
 entry_id_produto.grid(row=1, column=1, pady=5)
 
@@ -194,8 +204,13 @@ entry_valor_saida.grid(row=4, column=1, pady=5)
 
 
 # Botões de ação (ajustando a posição na parte inferior e lado a lado)
-btn_lancar_saida = tk.Button(container, text="Lançar Saída", bg="#5cb85c", fg="white", command=lançar_saida, width=15)
-btn_lancar_saida.grid(row=5, column=0, pady=10, padx=5, sticky="ew")
+
+btn_criar_saida = tk.Button(container, text="Criar Saída", bg="#f0ad4e", fg="white", command=lançar_saida, width=15)
+btn_criar_saida.grid(row=5, column=1, pady=10, padx=5, sticky="ew")
+
+btn_consultar_saida = tk.Button(container, text="Consultar Saída", bg="#5cb85c", fg="white", command=consultar_saida, width=15)
+btn_consultar_saida.grid(row=5, column=0, pady=10, padx=5, sticky="ew")
+
 
 btn_editar_saida = tk.Button(container, text="Editar Saída", bg="#f0ad4e", fg="white", command=editar_saida, width=15)
 btn_editar_saida.grid(row=5, column=1, pady=10, padx=5, sticky="ew")

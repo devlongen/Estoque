@@ -12,13 +12,6 @@ class Database:
                 password="root"  
             )
             self.cursor = self.conn.cursor()
-
-            # Criar o banco de dados se não existir
-            self.cursor.execute("CREATE DATABASE IF NOT EXISTS estoque")
-            self.conn.database = "estoque"
-
-            # Criar a tabela se não existir
-            self.create_table()
             print("Conectado ao banco de dados 'estoque'.")
         
         except mysql.connector.Error as e:
