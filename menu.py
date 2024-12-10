@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import os
+import subprocess
 import mysql.connector
 
 class StockControlApp:
@@ -9,7 +10,7 @@ class StockControlApp:
         self.root.title("Stock Control")
         self.root.geometry("1900x900")
         self.root.configure(bg="#0F0C25")
-        
+
         # Verificar se as imagens existem
         logo_path = "icons/logo.png"
         cadastro_img_path = "icons/cadastro.png"
@@ -21,7 +22,7 @@ class StockControlApp:
                 messagebox.showerror("Erro", f"Imagem {img_path} não encontrada!")
                 self.root.quit()
                 return
-           
+               
         # Carregar imagens
         self.logo_img = tk.PhotoImage(file=logo_path)
         self.cadastro_img = tk.PhotoImage(file=cadastro_img_path)
@@ -112,6 +113,11 @@ class StockControlApp:
         # Atualizar automaticamente a cada 10 segundos
         self.root.after(10000, self.update_counts_periodically)
 
+    def clear_content(self):
+        # Limpar todos os widgets da tela anterior
+        for widget in self.main_content.winfo_children():
+            widget.destroy()
+
     def update_counts(self):
         try:
             # Conectar ao MySQL com banco de dados específico
@@ -141,18 +147,20 @@ class StockControlApp:
         self.root.after(10000, self.update_counts_periodically)
 
     def show_home(self):
+        self.clear_content()
         messagebox.showinfo("Tela Inicial", "Você está na Tela Inicial!")
 
     def show_output(self):
-        # Mostra a tela de Saída
-        messagebox.showinfo("Saída", "Você está na Tela de Saída de Produtos!")
+        self.clear_content()
+        subprocess.run(["python", "saidaproduto.py"])
 
     def show_register(self):
-        # Mostra a tela de Cadastro de Produtos
-        messagebox.showinfo("Cadastro", "Você está na Tela de Cadastro de Produtos!")
+        self.clear_content()
+        subprocess.run(["python", "cadastroproduto.py"])
 
     def show_logout(self):
-        messagebox.showinfo("Sair", "Você foi desconectado!")
+        self.root.quit()
+        subprocess.run(["python", "tela.py"])
 
 if __name__ == "__main__":
     root = tk.Tk()

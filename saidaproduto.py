@@ -1,8 +1,16 @@
 import tkinter as tk
+import subprocess
+import sys
 from tkinter import messagebox
 import mysql.connector
 from tkinter import ttk
 from tkcalendar import Calendar
+
+# Função para redirecionar ao menu
+def sair_para_menu():
+    root.destroy() # Fecha a janela atual
+    subprocess.run(["python", "menu.py"])
+
 
 # Função para conectar ao banco de dados
 def connection_database():
@@ -293,6 +301,9 @@ botao_listar.grid(row=0, column=3, padx=10)
 
 botao_listar_estoque = tk.Button(button_frame, text="Listar Estoque", bg="#FF5722", fg="white", command=listar_estoque)
 botao_listar_estoque.grid(row=0, column=4, padx=10)
+
+botao_sair = tk.Button(container, text="Sair", command=sair_para_menu, bg="red", fg="white", font=("Arial", 12))
+botao_sair.grid(row=10, column=0, columnspan=2, pady=20)
 
 # Tabela de produtos
 tree = ttk.Treeview(container, columns=("id", "nome", "quantidadeSaida", "valorEntrada", "valorSaida", "lucro", "validade"), show="headings")
