@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
                     nome VARCHAR(255) NOT NULL,
                     email varchar(255) NOT NULL,
                     username VARCHAR(255) NOT NULL UNIQUE,
-                    password VARCHAR(255) NOT NULL
+                    password VARCHAR(255) NOT NULL,
+                    flag_admin boolean null 
 );
 
 
@@ -30,4 +31,6 @@ CREATE TABLE IF NOT EXISTS saida (
     validade DATETIME NOT NULL             -- Data e hora de validade
 );
 
+INSERT INTO users (nome, email, username, password, flag_admin) 
+VALUES ('Admin User', 'admin@example.com', 'admin', 'senha123', 1);
 

@@ -45,12 +45,14 @@ class StockControlApp:
         navbar_button_bg = "#CADA8D"
         self.home_button = tk.Button(self.navbar, text="Inicio", bg=navbar_button_bg, fg="black", command=self.show_home)
         self.home_button.grid(row=0, column=1, padx=10, pady=5)
-        self.output_button = tk.Button(self.navbar, text="Saída", bg=navbar_button_bg, fg="black", command=self.show_output)
+        self.output_button = tk.Button(self.navbar, text="Admin", bg=navbar_button_bg, fg="black", command=self.show_admin)
         self.output_button.grid(row=0, column=2, padx=10, pady=5)
+        self.output_button = tk.Button(self.navbar, text="Saída", bg=navbar_button_bg, fg="black", command=self.show_output)
+        self.output_button.grid(row=0, column=3, padx=10, pady=5)
         self.register_button = tk.Button(self.navbar, text="Cadastro", bg=navbar_button_bg, fg="black", command=self.show_register)
-        self.register_button.grid(row=0, column=3, padx=10, pady=5)
+        self.register_button.grid(row=0, column=4, padx=10, pady=5)
         self.logout_button = tk.Button(self.navbar, text="Sair", bg=navbar_button_bg, fg="black", command=self.show_logout)
-        self.logout_button.grid(row=0, column=4, padx=10, pady=5)
+        self.logout_button.grid(row=0, column=5, padx=10, pady=5)
 
         # Centralizar botões na barra de navegação
         self.navbar.grid_columnconfigure(0, weight=1)
@@ -113,11 +115,6 @@ class StockControlApp:
         # Atualizar automaticamente a cada 10 segundos
         self.root.after(10000, self.update_counts_periodically)
 
-    def clear_content(self):
-        # Limpar todos os widgets da tela anterior
-        for widget in self.main_content.winfo_children():
-            widget.destroy()
-
     def update_counts(self):
         try:
             # Conectar ao MySQL com banco de dados específico
@@ -140,23 +137,26 @@ class StockControlApp:
         except mysql.connector.Error as e:
             print(f"Erro ao conectar ao banco de dados: {e}")
             return None  # Retorna None em caso de erro
-
     def update_counts_periodically(self):
         self.update_counts()
         # Chama a função novamente após 10 segundos
         self.root.after(10000, self.update_counts_periodically)
 
     def show_home(self):
-        self.clear_content()
         messagebox.showinfo("Tela Inicial", "Você está na Tela Inicial!")
 
     def show_output(self):
-        self.clear_content()
         subprocess.run(["python", "saidaproduto.py"])
 
     def show_register(self):
-        self.clear_content()
         subprocess.run(["python", "cadastroproduto.py"])
+
+    def show_admin(self):
+        from tela import usuario_entry
+        if usuario_entry == "admin":  # Verificar se o usuário é admin
+            subprocess.run(["python", "admin.py"])
+        else:
+            messagebox.showerror("Acesso negado", "Você não tem permissão para acessar esta área.")
 
     def show_logout(self):
         self.root.quit()

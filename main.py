@@ -1,4 +1,4 @@
-from tela import LoginCadastro  
+from tela import LoginCadastro
 import tkinter as tk
 
 if __name__ == "__main__":
