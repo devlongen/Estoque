@@ -160,5 +160,5 @@ class AdminControlApp:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = StockControlApp(root)
+    app = AdminControlApp(root)
     root.mainloop()
