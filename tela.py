@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import mysql.connector
 import re
-from menu import StockControlApp  
+from menu import StockControlApp  # Import da tela de menu padrão
+from menu_admin import AdminControlApp  # Import da tela de menu do administrador
 
 class LoginCadastro:
     def __init__(self, root):
@@ -71,15 +72,22 @@ class LoginCadastro:
         try:
             conn = mysql.connector.connect(host="localhost", user="root", password="", database="estoque")
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (usuario, senha))
+            cursor.execute("SELECT flag_admin FROM users WHERE username=%s AND password=%s", (usuario, senha))
             result = cursor.fetchone()
-
             if result:
-                messagebox.showinfo("Sucesso", "Login realizado com sucesso!")
-                self.root.destroy()
-                menu_root = tk.Tk()
-                menu_app = StockControlApp(menu_root)
-                menu_root.mainloop()
+                flag_admin = result[0]
+                if flag_admin == 1:
+                    messagebox.showinfo("Sucesso", "Login como administrador realizado com sucesso!")
+                    self.root.destroy()
+                    admin_root = tk.Tk()
+                    admin_app = AdminControlApp(admin_root)
+                    admin_root.mainloop()
+                else:
+                    messagebox.showinfo("Sucesso", "Login realizado com sucesso!")
+                    self.root.destroy()
+                    menu_root = tk.Tk()
+                    menu_app = StockControlApp(menu_root)
+                    menu_root.mainloop()
             else:
                 messagebox.showerror("Erro", "Usuário ou senha incorretos.")
 

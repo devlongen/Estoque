@@ -4,7 +4,7 @@ import os
 import subprocess
 import mysql.connector
 
-class StockControlApp:
+class AdminControlApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Stock Control")
@@ -45,12 +45,14 @@ class StockControlApp:
         navbar_button_bg = "#CADA8D"
         self.home_button = tk.Button(self.navbar, text="Inicio", bg=navbar_button_bg, fg="black", command=self.show_home)
         self.home_button.grid(row=0, column=1, padx=10, pady=5)
-        self.output_button = tk.Button(self.navbar, text="Saída", bg=navbar_button_bg, fg="black", command=self.show_output)
+        self.output_button = tk.Button(self.navbar, text="Admin", bg=navbar_button_bg, fg="black", command=self.show_admin)
         self.output_button.grid(row=0, column=2, padx=10, pady=5)
+        self.output_button = tk.Button(self.navbar, text="Saída", bg=navbar_button_bg, fg="black", command=self.show_output)
+        self.output_button.grid(row=0, column=3, padx=10, pady=5)
         self.register_button = tk.Button(self.navbar, text="Cadastro", bg=navbar_button_bg, fg="black", command=self.show_register)
-        self.register_button.grid(row=0, column=3, padx=10, pady=5)
+        self.register_button.grid(row=0, column=4, padx=10, pady=5)
         self.logout_button = tk.Button(self.navbar, text="Sair", bg=navbar_button_bg, fg="black", command=self.show_logout)
-        self.logout_button.grid(row=0, column=4, padx=10, pady=5)
+        self.logout_button.grid(row=0, column=5, padx=10, pady=5)
 
         # Centralizar botões na barra de navegação
         self.navbar.grid_columnconfigure(0, weight=1)
@@ -148,6 +150,9 @@ class StockControlApp:
 
     def show_register(self):
         subprocess.run(["python", "cadastroproduto.py"])
+
+    def show_admin(self):
+        subprocess.run(["python", "admin.py"])
 
     def show_logout(self):
         self.root.quit()
